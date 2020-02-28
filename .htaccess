@@ -1,0 +1,17 @@
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^wp-json.* harsanyi/index.php [L]
+
+RewriteRule ^/?$ harsanyi/front-end/ [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/harsanyi/front-end
+RewriteRule ^(.*)$ harsanyi/front-end/$1 [L]
+</IfModule>
