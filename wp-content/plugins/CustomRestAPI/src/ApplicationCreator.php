@@ -29,7 +29,7 @@ class ApplicationCreator
 
         $applicationsTable = $wpdb->prefix . \APPLICATIONS_TABLE; 
         $insertData = array_merge(['id' => $applicationId], $postData);
-        $attachmens = $insertData['attachments'];
+        $insertData['attachments'] = !empty($insertData['attachments']) ? $insertData['attachments'] : [];
         
         if (!$this->attachFilesToApplication($insertData['attachments'], $applicationId)) {
             return false;
