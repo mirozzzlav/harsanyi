@@ -25,7 +25,7 @@ add_action('admin_init','harsanyi_register_plugin_styles');
 
 
 /**
- * Hideing POSTs and PAGEs from WP-ADMIN menu 
+ * Hideing default POSTs from WP-ADMIN menu 
  */ 
 function remove_default_posts_from_menu() {
     remove_menu_page('edit.php');
@@ -38,6 +38,9 @@ add_action( 'admin_menu', 'remove_default_posts_from_menu' );
 ///// WEHELPED PART OF THE CODE ////
 ////////////////////////////////////////
 
+/**
+ * Creats custom post type "pomohlisme"
+ */
 function create_wehelped_post_type() {
 
 	$labels = array(
@@ -80,7 +83,9 @@ add_action( 'init', 'create_wehelped_post_type' );
 ///// APPLICATIONS PART OF THE CODE ////
 ////////////////////////////////////////
 
-// creating application post type
+/**
+ * Creats custom post type "ziadost"
+ */
 function create_application_post_type() {
 
 	$labels = array(
@@ -122,10 +127,10 @@ function create_application_post_type() {
 }
 add_action( 'init', 'create_application_post_type' );
 
-// on plugin activation create supporting table for applications
-
-
-function createApplicationsTable() {
+/**
+ * Creates the table required for "ziadost" post type
+ */
+function create_applications_table() {
 	global $wpdb;
 
 	$charset_collate = $wpdb->get_charset_collate();
@@ -155,9 +160,12 @@ function createApplicationsTable() {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta($sql);
 }
-register_activation_hook(__FILE__, 'createApplicationsTable');
+register_activation_hook(__FILE__, 'create_applications_table');
 
 
+/**
+ * Helps to sanitize inputs for "Application/Ziadost" block inside "Applicaiton/Ziadost" detail page in wp-admin
+ */
 function sanitizeApplication(Array $application): Array
 {
 	$application['applicantEmail'] = !empty($application['applicantEmail']) ? 
@@ -172,7 +180,10 @@ function sanitizeApplication(Array $application): Array
 	return $application;
 }
 
-function applicationGetHtml(Array $application) 
+/**
+ * Returns Html content of "Application/Ziadost" detail page in wp-admin
+ */
+function application_get_html(Array $application) 
 {
 	$ret = "<div class='wpadmin-app-wrapper'>
 			<h3 class='wpadmin-app-hl'>Info o žiadateľovi</h3>
@@ -218,6 +229,9 @@ function applicationGetHtml(Array $application)
 	return $ret;
 }
 
+/**
+ * Returns Html of attachments part for "Application/Ziadost" detail page in wp-admin
+ */
 function applicationGetAttachmentsHtml(int $attachmentId): String
 {
 	$attachments = get_posts(
@@ -264,7 +278,7 @@ function on_application_post_showup($post_object)
 		return;
 	}
 	$application = sanitizeApplication($application);
-	$post_object->post_content = applicationGetHtml($application);
+	$post_object->post_content = application_get_html($application);
 	
 }
 add_action( 'the_post', 'on_application_post_showup' );
@@ -286,7 +300,11 @@ function delete_application_record(int $post_id)
 add_action( 'before_delete_post', 'delete_application_record' ); 
 
 
-function addLinkViewApplication($actions, $post)
+/**
+ * In wp-admin, where the "ziadost" posts are listed, it adjusts/removes 
+ * certain action links like edit "ziadost", view "ziadost" etc.
+ */
+function adjust_links_for_application($actions, $post)
 {
     $post_id = $post->ID;
 	$post_type = $post->post_type;
@@ -304,11 +322,14 @@ function addLinkViewApplication($actions, $post)
 	return $actions;
 
 }
-add_filter('post_row_actions', 'addLinkViewApplication', 10, 2);
+add_filter('post_row_actions', 'adjust_links_for_application', 10, 2);
 
 
-add_filter( 'get_edit_post_link', function($link) {
-	
+/**
+ * In wp-admin, where the "ziadost" posts are listed, it change default link pointing to "ziadost" detail.
+ */
+function change_default_edit_link_for_application($link)
+{
 	preg_match("/post=([0-9]+)/", $link, $matches);
 	if (empty($matches[1])) {
 		return $link;
@@ -321,11 +342,14 @@ add_filter( 'get_edit_post_link', function($link) {
 	
 	return $link;
 	
-});
+};
 
+add_filter( 'get_edit_post_link', 'change_default_edit_link_for_application');
 
-
-function renderViewApplication() {
+/**
+ *	Renders "ziadost" detail page in wp-admin
+ */
+function render_view_application() {
 	global $wpdb;
 	$postId = $_GET['id'];
 	$notFoundText = 'Žiadosť nebola nájdená.';
@@ -345,23 +369,28 @@ function renderViewApplication() {
 		return;
 	}
 
-	$content = applicationGetHtml($application);
+	$content = application_get_html($application);
 
 	echo "<div class='wrap'>$content</div>";
 	
 }
 
+/**
+ * Adding custom page to view the detail of "ziadost" post type in wp-admin.
+ */
 add_action( 'admin_menu', function() {
     add_dashboard_page(
         'Pozri žiadosť',
         'Pozri žiadosť',
         'manage_options',
         'application-view',
-        'renderViewApplication'
+        'render_view_application'
     );
 });
 
-
+/**
+ * Removing custom "ziadost" detail page from wp-admin main menu.
+ */
 add_action( 'admin_head', function() {
     remove_submenu_page( 'index.php', 'application-view');
 });
