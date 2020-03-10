@@ -23,6 +23,11 @@ class RestController extends \WP_REST_Controller {
         "methods" => \WP_REST_Server::READABLE,
         "callback" => "getPosts",
         "url" => "/get-posts/(?P<post_type>[\da-zA-Z\_\-]+)(?:/(?P<page_nr>\d+)/(?P<posts_per_page>\d+))?",
+      ],
+      [
+        "methods" => \WP_REST_Server::READABLE,
+        "callback" => "getSupportValues",
+        "url" => "/get-support-values",
       ]
     ];
 
@@ -129,6 +134,14 @@ class RestController extends \WP_REST_Controller {
       }
 
       return new \WP_REST_Response(['applicationCreated' => true], 200);
+    }
+    public function getSupportValues() {
+      $resp = [
+        "supported_projects" => get_option(SUPPORTED_PROJECTS_NAME) ?: 0,
+        "supported_projects_value" => get_option(SUPPORTED_PROJECTS_VALUE_NAME) ?: 0
+      ];
+      return new \WP_REST_Response($resp, 200);
+      
     }
    
   }
