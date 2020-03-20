@@ -28,6 +28,11 @@ class RestController extends \WP_REST_Controller {
         "methods" => \WP_REST_Server::READABLE,
         "callback" => "getSupportValues",
         "url" => "/get-support-values",
+      ],
+      [
+        "methods" => \WP_REST_Server::READABLE,
+        "callback" => "getContentSettings",
+        "url" => "/get-content-settings",
       ]
     ];
 
@@ -142,6 +147,23 @@ class RestController extends \WP_REST_Controller {
       ];
       return new \WP_REST_Response($resp, 200);
       
+    }
+
+    public function getContentSettings() {
+      global $wpdb;
+      $post_name = CONTENT_SETTINGS_PG_NAME;
+      $json_string = $wpdb->get_var("SELECT post_content FROM $wpdb->posts WHERE post_name = '$post_name'");
+      
+      $json = empty($json_string) ? null : json_decode($json_string);
+      if (empty($json)) {
+        return $this->errorResponse(
+          "content-settings-not-available", 
+          "Nepodarilo sa nájsť dáta pre načítanie tejto stránky.",
+        );
+      }
+      
+
+      return new \WP_REST_Response($json, 200);
     }
    
   }

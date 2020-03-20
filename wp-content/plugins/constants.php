@@ -10,3 +10,5 @@ const APPLICATIONS_EDITOR_USER_ID = 3;
 const SUPPORT_VALUES_PG_NAME = "change-support-values";
 const SUPPORTED_PROJECTS_NAME = "supported_projects";
 const SUPPORTED_PROJECTS_VALUE_NAME = "supported_projects_value";
+
+const CONTENT_SETTINGS_PG_NAME = "content-settings";
